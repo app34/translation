@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Housekeeping Service Translator</title>
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    :root[data-theme="dark"] {
+      --bg-body: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #0f172a;
+      --bg-chip: #334155;
+      --bg-chip-hover: #475569;
+      --border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    :root[data-theme="light"] {
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --bg-chip: #e2e8f0;
+      --bg-chip-hover: #cbd5e1;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #059669;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* PWA Install Banner Popup */
+    .install-banner {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 650px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+    }
+
+    .install-banner.active {
+      display: flex;
+    }
+
+    .install-banner-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .install-banner-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .app-card {
+      width: 100%;
+      max-width: 650px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand h1 { font-size: 1.2rem; font-weight: 700; }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .icon-btn {
+      background: var(--bg-chip);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    select, button, textarea, input {
+      font-size: 0.95rem;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    select, input {
+      background-color: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 10px;
+      width: 100%;
+    }
+
+    .swap-btn {
+      background: var(--bg-chip);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .io-section { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+    .field-group { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+    textarea {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 12px;
+      height: 90px;
+      resize: none;
+    }
+
+    .output-box {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 12px;
+      min-height: 90px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+    }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 8px;
+    }
+
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-secondary { background-color: var(--bg-chip); color: var(--text-main); border: 1px solid var(--border); }
+    .btn-danger { background-color: #ef4444; color: white; }
+    .btn-success { background-color: var(--accent); color: white; }
+
+    .library-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .chips-grid { display: flex; flex-wrap: wrap; gap: 8px; max-height: 160px; overflow-y: auto; }
+
+    .chip {
+      background: var(--bg-chip);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .chip:hover { background: var(--bg-chip-hover); }
+
+    /* Settings Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 999;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-body {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+
+    .setting-section {
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-item-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+  <!-- Install Popup Banner -->
+  <div class="install-banner" id="installBanner">
+    <span class="install-banner-text">📲 Install App for Offline Use?</span>
+    <div class="install-banner-actions">
+      <button class="btn btn-secondary" style="padding: 4px 8px;" id="dismissBannerBtn">Later</button>
+      <button class="btn btn-success" style="padding: 4px 12px;" id="bannerInstallBtn">Install</button>
+    </div>
+  </div>
+
+  <main class="app-card">
+    <header class="header">
+      <div class="brand">
+        <span>🛎️</span>
+        <h1>Service Translator</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="openSettingsBtn">⚙️ Settings</button>
+        <button class="icon-btn" id="themeToggleBtn">🌙</button>
+      </div>
+    </header>
+
+    <div class="controls-grid">
+      <select id="sourceLang">
+        <option value="en" selected>English</option>
+        <option value="zh">Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+      </select>
+
+      <button class="swap-btn" id="swapBtn">⇄</button>
+
+      <select id="targetLang">
+        <option value="en">English</option>
+        <option value="zh" selected>Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+      </select>
+    </div>
+
+    <div class="io-section">
+      <div class="field-group">
+        <label>Original Message</label>
+        <textarea id="inputText" placeholder="Type here or click a card phrase below..."></textarea>
+        
+        <div class="btn-row">
+          <button class="btn btn-primary" id="translateBtn">⚡ Translate</button>
+          <button class="btn btn-secondary" id="micBtn">🎤 Speak</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Translation Result</label>
+        <div class="output-box" id="outputText">Translation will appear here...</div>
+        
+        <div class="btn-row">
+          <button class="btn btn-primary" id="speakBtn">🔊 Read Aloud</button>
+          <button class="btn btn-secondary" id="copyBtn">📋 Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="library-section">
+      <div style="margin-bottom: 10px;">
+        <label>Quick Question Cards:</label>
+      </div>
+      <div class="chips-grid" id="phraseContainer"></div>
+    </div>
+  </main>
+
+  <!-- Settings & Cards Management Overlay -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚙️ Settings & Cards</h3>
+        <button class="icon-btn" id="closeModalBtn">✖</button>
+      </div>
+
+      <!-- Install Section Inside Settings -->
+      <div class="setting-section" id="settingInstallContainer">
+        <label style="display:block; margin-bottom: 8px;">App Installation</label>
+        <button class="btn btn-success" id="settingInstallBtn" style="width: 100%;">📲 Install App on Device</button>
+      </div>
+      
+      <label style="margin-bottom: 8px;">Add Custom Question Card</label>
+      <div style="margin-bottom: 12px; display:flex; gap: 8px;">
+        <input type="text" id="newCardInput" placeholder="Add a new question...">
+        <button class="btn btn-primary" id="addCardBtn" style="flex: 0 0 80px;">Add</button>
+      </div>
+
+      <label style="margin-bottom: 8px;">Manage Saved Cards</label>
+      <div class="modal-body" id="modalCardList">
+        <!-- Editable cards -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // PWA & Service Worker Registration
+    let deferredPrompt = null;
+    const installBanner = document.getElementById('installBanner');
+    const bannerInstallBtn = document.getElementById('bannerInstallBtn');
+    const dismissBannerBtn = document.getElementById('dismissBannerBtn');
+    const settingInstallBtn = document.getElementById('settingInstallBtn');
+    const settingInstallContainer = document.getElementById('settingInstallContainer');
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration Failed:', err));
+      });
+    }
+
+    // Capture install prompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // Show installation UI
+      installBanner.classList.add('active');
+      settingInstallContainer.style.display = 'block';
+    });
+
+    // Install action trigger
+    async function triggerPwaInstall() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        installBanner.classList.remove('active');
+        settingInstallContainer.style.display = 'none';
+      }
+      deferredPrompt = null;
+    }
+
+    bannerInstallBtn.addEventListener('click', triggerPwaInstall);
+    settingInstallBtn.addEventListener('click', triggerPwaInstall);
+
+    dismissBannerBtn.addEventListener('click', () => {
+      installBanner.classList.remove('active');
+    });
+
+    // Hide install prompt if already installed
+    window.addEventListener('appinstalled', () => {
+      installBanner.classList.remove('active');
+      settingInstallContainer.style.display = 'none';
+      deferredPrompt = null;
+    });
+
+    // Theme Switcher
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const htmlElement = document.documentElement;
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = htmlElement.getAttribute('data-theme') === 'dark';
+      htmlElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeToggleBtn.innerText = isDark ? '☀️' : '🌙';
+    });
+
+    // Main Translation UI Logic
+    const sourceLang = document.getElementById('sourceLang');
+    const targetLang = document.getElementById('targetLang');
+    const swapBtn = document.getElementById('swapBtn');
+    const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
+    const translateBtn = document.getElementById('translateBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const phraseContainer = document.getElementById('phraseContainer');
+
+    // Settings Modal UI
+    const modalOverlay = document.getElementById('modalOverlay');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalCardList = document.getElementById('modalCardList');
+    const newCardInput = document.getElementById('newCardInput');
+    const addCardBtn = document.getElementById('addCardBtn');
+
+    const defaultPhrases = [
+      "Would you like your room cleaned now?",
+      "Do you need extra towels or pillows?",
+      "When should I return to clean your room?",
+      "Here is your room service order.",
+      "Do you have any laundry for cleaning?",
+      "Is everything okay with your room?"
+    ];
+
+    function getStoredCards() {
+      const saved = localStorage.getItem('pwa_translator_cards');
+      return saved ? JSON.parse(saved) : defaultPhrases;
+    }
+
+    function saveCards(cards) {
+      localStorage.setItem('pwa_translator_cards', JSON.stringify(cards));
+      renderMainCards();
+      renderModalCards();
+    }
+
+    function renderMainCards() {
+      phraseContainer.innerHTML = '';
+      getStoredCards().forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'chip';
+        btn.innerText = text;
+        btn.onclick = () => {
+          inputText.value = text;
+          translateText();
+        };
+        phraseContainer.appendChild(btn);
+      });
+    }
+
+    function renderModalCards() {
+      modalCardList.innerHTML = '';
+      getStoredCards().forEach((text, index) => {
+        const item = document.createElement('div');
+        item.className = 'card-item';
+        item.innerHTML = `
+          <input type="text" value="${text}" data-index="${index}" class="edit-card-input">
+          <div class="card-item-actions">
+            <button class="btn btn-secondary save-single-btn" data-index="${index}">💾 Save Edit</button>
+            <button class="btn btn-danger delete-single-btn" data-index="${index}">🗑️ Delete</button>
+          </div>
+        `;
+        modalCardList.appendChild(item);
+      });
+
+      document.querySelectorAll('.save-single-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          const idx = e.target.dataset.index;
+          const newValue = document.querySelector(`.edit-card-input[data-index="${idx}"]`).value.trim();
+          if (newValue) {
+            const cards = getStoredCards();
+            cards[idx] = newValue;
+            saveCards(cards);
+          }
+        };
+      });
+
+      document.querySelectorAll('.delete-single-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          const idx = e.target.dataset.index;
+          const cards = getStoredCards();
+          cards.splice(idx, 1);
+          saveCards(cards);
+        };
+      });
+    }
+
+    addCardBtn.onclick = () => {
+      const val = newCardInput.value.trim();
+      if (val) {
+        const cards = getStoredCards();
+        cards.push(val);
+        saveCards(cards);
+        newCardInput.value = '';
+      }
+    };
+
+    openSettingsBtn.onclick = () => {
+      renderModalCards();
+      modalOverlay.classList.add('active');
+    };
+    closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
+
+    async function translateText() {
+      const text = inputText.value.trim();
+      if (!text) return;
+
+      if (sourceLang.value === targetLang.value) {
+        outputText.innerText = text;
+        return;
+      }
+
+      outputText.innerText = "Translating...";
+      const pair = `${sourceLang.value}|${targetLang.value}`;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.responseData && data.responseData.translatedText) {
+          outputText.innerText = data.responseData.translatedText;
+        }
+      } catch (err) {
+        outputText.innerText = "Offline Mode: Full web translation requires network connection. Pre-saved text and speech still work!";
+      }
+    }
+
+    translateBtn.onclick = translateText;
+
+    speakBtn.onclick = () => {
+      const text = outputText.innerText;
+      if (!text || text.startsWith("Translation will")) return;
+      const locales = { 'en': 'en-US', 'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR' };
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = locales[targetLang.value];
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    };
+
+    swapBtn.onclick = () => {
+      const temp = sourceLang.value;
+      sourceLang.value = targetLang.value;
+      targetLang.value = temp;
+    };
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(outputText.innerText);
+    };
+
+    renderMainCards();
+  </script>
+</body>
+</html>
