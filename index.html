@@ -1,594 +1,2297 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Housekeeping Service Translator</title>
-  
-  <!-- Web App Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f172a">
-  <link rel="apple-touch-icon" href="icon-192.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Housekeeping Service Translator</title>
 
-  <style>
-    :root[data-theme="dark"] {
-      --bg-body: #0f172a;
-      --bg-card: #1e293b;
-      --bg-input: #0f172a;
-      --bg-chip: #334155;
-      --bg-chip-hover: #475569;
-      --border: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --accent: #10b981;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    }
+    <!-- ===== PWA Manifest ===== -->
+    <link rel="manifest" href="manifest.json" />
 
-    :root[data-theme="light"] {
-      --bg-body: #f1f5f9;
-      --bg-card: #ffffff;
-      --bg-input: #f8fafc;
-      --bg-chip: #e2e8f0;
-      --bg-chip-hover: #cbd5e1;
-      --border: #cbd5e1;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent: #059669;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    }
+    <!-- ===== iOS / macOS Meta Tags ===== -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Service Translator" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    <!-- ===== Theme Color ===== -->
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f1f5f9" media="(prefers-color-scheme: light)" />
 
-    body {
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-    }
+    <!-- ===== Font ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
-    /* PWA Install Banner Popup */
-    .install-banner {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: 650px;
-      background: var(--primary);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 12px;
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-    }
+    <style>
+        /* ============================================================
+               CSS VARIABLES & RESET
+               ============================================================ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    .install-banner.active {
-      display: flex;
-    }
+        :root[data-theme="dark"] {
+            --bg-body: #0b1120;
+            --bg-card: #1a2332;
+            --bg-input: #0f172a;
+            --bg-chip: #2a3a52;
+            --bg-chip-hover: #3a4e6b;
+            --bg-surface: #1e293b;
+            --border: #2a3a52;
+            --border-light: #334155;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --primary: #4f8cff;
+            --primary-hover: #3b7beb;
+            --primary-glow: rgba(79, 140, 255, 0.25);
+            --accent: #34d399;
+            --accent-hover: #2bbf8a;
+            --danger: #f87171;
+            --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-full: 9999px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --mic-pulse-color: rgba(79, 140, 255, 0.5);
+        }
 
-    .install-banner-text {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
+        :root[data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #f8fafc;
+            --bg-chip: #e2e8f0;
+            --bg-chip-hover: #cbd5e1;
+            --bg-surface: #f1f5f9;
+            --border: #e2e8f0;
+            --border-light: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-dim: #94a3b8;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-glow: rgba(37, 99, 235, 0.15);
+            --accent: #059669;
+            --accent-hover: #047857;
+            --danger: #dc2626;
+            --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-full: 9999px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --mic-pulse-color: rgba(37, 99, 235, 0.4);
+        }
 
-    .install-banner-actions {
-      display: flex;
-      gap: 8px;
-    }
+        html {
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    .app-card {
-      width: 100%;
-      max-width: 650px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 24px;
-    }
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            transition: background-color var(--transition), color var(--transition);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
+        /* ============================================================
+               INSTALL BANNER (Android Chrome)
+               ============================================================ */
+        .install-banner {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120%);
+            width: calc(100% - 32px);
+            max-width: 650px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            z-index: 2000;
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+        }
 
-    .brand { display: flex; align-items: center; gap: 8px; }
-    .brand h1 { font-size: 1.2rem; font-weight: 700; }
+        .install-banner.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
 
-    .header-actions { display: flex; gap: 8px; }
+        .install-banner-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .icon-btn {
-      background: var(--bg-chip);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 8px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
+        .install-banner-text .icon {
+            font-size: 1.2rem;
+        }
 
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 16px;
-    }
+        .install-banner-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
 
-    select, button, textarea, input {
-      font-size: 0.95rem;
-      border-radius: 10px;
-      outline: none;
-    }
+        .install-banner-actions .btn {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+        }
 
-    select, input {
-      background-color: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 10px;
-      width: 100%;
-    }
+        .install-banner-actions .btn:active {
+            transform: scale(0.96);
+        }
 
-    .swap-btn {
-      background: var(--bg-chip);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-weight: bold;
-    }
+        .btn-banner-dismiss {
+            background: var(--bg-chip);
+            color: var(--text-muted);
+        }
+        .btn-banner-dismiss:hover {
+            background: var(--bg-chip-hover);
+        }
 
-    .io-section { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
-    .field-group { display: flex; flex-direction: column; gap: 8px; }
-    label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .btn-banner-install {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-banner-install:hover {
+            background: var(--primary-hover);
+        }
 
-    textarea {
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 12px;
-      height: 90px;
-      resize: none;
-    }
+        /* ============================================================
+               iOS INSTALL GUIDE
+               ============================================================ */
+        .ios-install-guide {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            width: calc(100% - 32px);
+            max-width: 400px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            z-index: 2000;
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+            text-align: center;
+        }
 
-    .output-box {
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 12px;
-      min-height: 90px;
-      border-radius: 10px;
-      white-space: pre-wrap;
-    }
+        .ios-install-guide.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
 
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ios-install-guide p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
 
-    .btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      border-radius: 8px;
-    }
+        .ios-install-guide .btn-ios-dismiss {
+            background: var(--bg-chip);
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .ios-install-guide .btn-ios-dismiss:hover {
+            background: var(--bg-chip-hover);
+        }
 
-    .btn-primary { background-color: var(--primary); color: white; }
-    .btn-secondary { background-color: var(--bg-chip); color: var(--text-main); border: 1px solid var(--border); }
-    .btn-danger { background-color: #ef4444; color: white; }
-    .btn-success { background-color: var(--accent); color: white; }
+        .ios-install-guide .share-icon-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            margin: 8px 0 12px;
+            opacity: 0.8;
+        }
 
-    .library-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
-    .chips-grid { display: flex; flex-wrap: wrap; gap: 8px; max-height: 160px; overflow-y: auto; }
+        /* ============================================================
+               MAIN CARD
+               ============================================================ */
+        .app-card {
+            width: 100%;
+            max-width: 680px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .chip {
-      background: var(--bg-chip);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0.6;
+        }
 
-    .chip:hover { background: var(--bg-chip-hover); }
+        /* ============================================================
+               HEADER
+               ============================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
 
-    /* Settings Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      z-index: 999;
-    }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    .modal-overlay.active { display: flex; }
+        .brand .logo {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
 
-    .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
+        .brand h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, var(--text-main) 60%, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
 
-    .modal-body {
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-right: 4px;
-    }
+        .icon-btn {
+            background: var(--bg-chip);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background var(--transition), transform var(--transition), border-color var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1;
+        }
 
-    .setting-section {
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
+        .icon-btn:hover {
+            background: var(--bg-chip-hover);
+            border-color: var(--border-light);
+        }
 
-    .card-item {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
 
-    .card-item-actions { display: flex; gap: 6px; justify-content: flex-end; }
-  </style>
+        .icon-btn .label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+               LANGUAGE CONTROLS
+               ============================================================ */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .controls-grid select {
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            width: 100%;
+            appearance: auto;
+            -webkit-appearance: auto;
+        }
+
+        .controls-grid select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .swap-btn {
+            background: var(--bg-chip);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: background var(--transition), transform var(--transition), border-color var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .swap-btn:hover {
+            background: var(--bg-chip-hover);
+            border-color: var(--border-light);
+        }
+
+        .swap-btn:active {
+            transform: rotate(180deg) scale(0.92);
+        }
+
+        /* ============================================================
+               IO SECTION
+               ============================================================ */
+        .io-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-group label .badge {
+            font-size: 0.55rem;
+            background: var(--primary);
+            color: #fff;
+            padding: 1px 8px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        textarea,
+        .output-box {
+            background: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            width: 100%;
+            line-height: 1.6;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            max-height: 180px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        textarea::placeholder {
+            color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        .output-box {
+            min-height: 80px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: var(--bg-input);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 9px 16px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+            flex: 1 1 auto;
+            min-width: 70px;
+            line-height: 1.4;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-chip);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-chip-hover);
+        }
+
+        .btn-success {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            opacity: 0.85;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            min-width: 40px;
+            flex: 0 1 auto;
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+        .btn-clear:hover {
+            background: var(--bg-chip);
+        }
+
+        /* ============================================================
+               MIC BUTTON – Professional Voice Input
+               ============================================================ */
+        .mic-btn-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-btn {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-chip);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            z-index: 2;
+        }
+
+        .mic-btn:hover {
+            background: var(--bg-chip-hover);
+            border-color: var(--border-light);
+        }
+
+        .mic-btn:active {
+            transform: scale(0.92);
+        }
+
+        .mic-btn .mic-icon {
+            transition: transform 0.2s ease;
+            line-height: 1;
+        }
+
+        /* Pulse ring */
+        .mic-pulse-ring {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--mic-pulse-color);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1;
+        }
+
+        .mic-btn.listening .mic-pulse-ring {
+            opacity: 1;
+            animation: micPulse 1.4s ease-in-out infinite;
+        }
+
+        .mic-btn.listening {
+            background: color-mix(in srgb, var(--primary) 20%, var(--bg-chip));
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .mic-btn.listening .mic-icon {
+            transform: scale(1.1);
+        }
+
+        .mic-btn.error-state {
+            border-color: var(--danger);
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.25);
+            animation: micShake 0.4s ease;
+        }
+
+        @keyframes micPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1.6);
+                opacity: 0;
+            }
+        }
+
+        @keyframes micShake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-6px);
+            }
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        .mic-status-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-left: 8px;
+            transition: color var(--transition);
+            white-space: nowrap;
+            min-width: 70px;
+        }
+
+        .mic-status-label.active {
+            color: var(--primary);
+        }
+
+        .mic-status-label.error {
+            color: var(--danger);
+        }
+
+        .mic-status-label.success {
+            color: var(--accent);
+        }
+
+        /* ============================================================
+               AUTO-TRANSLATE TOGGLE
+               ============================================================ */
+        .auto-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .auto-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* ============================================================
+               PHRASE LIBRARY
+               ============================================================ */
+        .library-section {
+            margin-top: 8px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .library-header label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .library-header .count-badge {
+            font-size: 0.6rem;
+            background: var(--bg-chip);
+            padding: 1px 10px;
+            border-radius: var(--radius-full);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .chips-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 170px;
+            overflow-y: auto;
+            padding: 2px 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .chips-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chips-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chips-grid::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .chip {
+            background: var(--bg-chip);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 7px 16px;
+            border-radius: var(--radius-full);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition), border-color var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chip:hover {
+            background: var(--bg-chip-hover);
+            border-color: var(--border-light);
+            transform: translateY(-1px);
+        }
+
+        .chip:active {
+            transform: scale(0.96);
+        }
+
+        .chip .append-icon {
+            font-size: 0.6rem;
+            margin-left: 4px;
+            opacity: 0.6;
+        }
+
+        /* ============================================================
+               MODAL (Settings)
+               ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 3000;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 24px 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-header .close-btn {
+            background: var(--bg-chip);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--transition), transform var(--transition);
+        }
+
+        .modal-header .close-btn:hover {
+            background: var(--bg-chip-hover);
+        }
+
+        .modal-header .close-btn:active {
+            transform: scale(0.92);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            padding: 16px 0 4px;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .setting-section {
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .setting-section .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .install-setting-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .install-setting-row .btn {
+            flex: 0 1 auto;
+        }
+
+        .install-setting-row .install-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .add-card-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-card-row input {
+            flex: 1;
+            background: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            min-width: 0;
+        }
+
+        .add-card-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .add-card-row input::placeholder {
+            color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        .add-card-row .btn {
+            flex: 0 0 auto;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: border-color var(--transition);
+        }
+
+        .card-item:hover {
+            border-color: var(--border-light);
+        }
+
+        .card-item .edit-card-input {
+            flex: 1;
+            background: transparent;
+            color: var(--text-main);
+            border: none;
+            padding: 4px 0;
+            font-size: 0.9rem;
+            font-family: inherit;
+            min-width: 80px;
+            outline: none;
+            border-bottom: 1px dashed transparent;
+            transition: border-color var(--transition);
+        }
+
+        .card-item .edit-card-input:focus {
+            border-bottom-color: var(--primary);
+        }
+
+        .card-item .card-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .card-item .card-actions .btn {
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            border-radius: var(--radius-full);
+            flex: 0 0 auto;
+            min-width: 0;
+            font-weight: 600;
+        }
+
+        .card-item .card-actions .btn-save {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .card-item .card-actions .btn-save:hover {
+            background: var(--primary-hover);
+        }
+
+        .card-item .card-actions .btn-delete {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .card-item .card-actions .btn-delete:hover {
+            opacity: 0.85;
+        }
+
+        .empty-cards-msg {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* ============================================================
+               RESPONSIVE
+               ============================================================ */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .app-card {
+                padding: 16px;
+                border-radius: var(--radius-sm);
+            }
+
+            .brand h1 {
+                font-size: 1rem;
+            }
+
+            .brand .logo {
+                font-size: 1.3rem;
+            }
+
+            .controls-grid {
+                gap: 6px;
+            }
+
+            .controls-grid select {
+                font-size: 0.8rem;
+                padding: 8px 10px;
+            }
+
+            .swap-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                font-size: 0.78rem;
+                padding: 7px 12px;
+                min-width: 60px;
+            }
+
+            .icon-btn .label {
+                display: none;
+            }
+
+            .modal {
+                padding: 16px 18px 18px;
+                max-height: 95vh;
+            }
+
+            .install-banner {
+                padding: 12px 14px;
+                top: 10px;
+                width: calc(100% - 20px);
+            }
+
+            .install-banner-text {
+                font-size: 0.8rem;
+            }
+
+            .ios-install-guide {
+                padding: 14px 16px;
+                bottom: 10px;
+                width: calc(100% - 20px);
+            }
+
+            .card-item {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+
+            .card-item .edit-card-input {
+                font-size: 0.82rem;
+                min-width: 60px;
+            }
+
+            .card-item .card-actions .btn {
+                font-size: 0.65rem;
+                padding: 3px 10px;
+            }
+
+            .mic-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+
+            .mic-status-label {
+                font-size: 0.6rem;
+                min-width: 50px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .header-actions {
+                justify-content: flex-end;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr auto 1fr;
+            }
+
+            .add-card-row {
+                flex-wrap: wrap;
+            }
+
+            .add-card-row input {
+                width: 100%;
+                flex: 1 1 100%;
+            }
+
+            .add-card-row .btn {
+                flex: 1 1 auto;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .app-card,
+        .modal,
+        .chips-grid {
+            scroll-behavior: smooth;
+        }
+
+        .translating .output-box {
+            opacity: 0.6;
+        }
+
+        /* Interim results highlight */
+        .interim-text {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- Install Popup Banner -->
-  <div class="install-banner" id="installBanner">
-    <span class="install-banner-text">📲 Install App for Offline Use?</span>
-    <div class="install-banner-actions">
-      <button class="btn btn-secondary" style="padding: 4px 8px;" id="dismissBannerBtn">Later</button>
-      <button class="btn btn-success" style="padding: 4px 12px;" id="bannerInstallBtn">Install</button>
-    </div>
-  </div>
-
-  <main class="app-card">
-    <header class="header">
-      <div class="brand">
-        <span>🛎️</span>
-        <h1>Service Translator</h1>
-      </div>
-      <div class="header-actions">
-        <button class="icon-btn" id="openSettingsBtn">⚙️ Settings</button>
-        <button class="icon-btn" id="themeToggleBtn">🌙</button>
-      </div>
-    </header>
-
-    <div class="controls-grid">
-      <select id="sourceLang">
-        <option value="en" selected>English</option>
-        <option value="zh">Chinese</option>
-        <option value="ja">Japanese</option>
-        <option value="ko">Korean</option>
-      </select>
-
-      <button class="swap-btn" id="swapBtn">⇄</button>
-
-      <select id="targetLang">
-        <option value="en">English</option>
-        <option value="zh" selected>Chinese</option>
-        <option value="ja">Japanese</option>
-        <option value="ko">Korean</option>
-      </select>
-    </div>
-
-    <div class="io-section">
-      <div class="field-group">
-        <label>Original Message</label>
-        <textarea id="inputText" placeholder="Type here or click a card phrase below..."></textarea>
-        
-        <div class="btn-row">
-          <button class="btn btn-primary" id="translateBtn">⚡ Translate</button>
-          <button class="btn btn-secondary" id="micBtn">🎤 Speak</button>
+    <!-- ============================================================
+    INSTALL BANNER – Android Chrome
+    ============================================================ -->
+    <div class="install-banner" id="installBanner" role="alert" aria-live="polite">
+        <span class="install-banner-text">
+            <span class="icon">📲</span>
+            Install App for Offline Use
+        </span>
+        <div class="install-banner-actions">
+            <button class="btn btn-banner-dismiss" id="dismissBannerBtn">Later</button>
+            <button class="btn btn-banner-install" id="bannerInstallBtn">Install</button>
         </div>
-      </div>
+    </div>
 
-      <div class="field-group">
-        <label>Translation Result</label>
-        <div class="output-box" id="outputText">Translation will appear here...</div>
-        
-        <div class="btn-row">
-          <button class="btn btn-primary" id="speakBtn">🔊 Read Aloud</button>
-          <button class="btn btn-secondary" id="copyBtn">📋 Copy</button>
+    <!-- ============================================================
+    iOS INSTALL GUIDE
+    ============================================================ -->
+    <div class="ios-install-guide" id="iosInstallGuide" role="alert" aria-live="polite">
+        <p>📱 <strong>Add to Home Screen</strong></p>
+        <p style="font-size:0.8rem; margin-bottom:6px;">Tap the Share button below, then select</p>
+        <div class="share-icon-row">
+            <span>⎔</span>
+            <span style="font-size:1.2rem; font-weight:300;">→</span>
+            <span style="font-size:1.1rem;">⬆️</span>
+            <span style="font-size:1.2rem; font-weight:300;">→</span>
+            <span style="font-weight:600;">➕</span>
         </div>
-      </div>
+        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:10px;">"Add to Home Screen"</p>
+        <button class="btn-ios-dismiss" id="dismissIosGuideBtn">Got it</button>
     </div>
 
-    <div class="library-section">
-      <div style="margin-bottom: 10px;">
-        <label>Quick Question Cards:</label>
-      </div>
-      <div class="chips-grid" id="phraseContainer"></div>
+    <!-- ============================================================
+    MAIN APPLICATION
+    ============================================================ -->
+    <main class="app-card" id="appCard">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <span class="logo">🛎️</span>
+                <h1>Service Translator</h1>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="openSettingsBtn" aria-label="Settings">
+                    ⚙️ <span class="label">Settings</span>
+                </button>
+                <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle theme">
+                    🌙 <span class="label">Theme</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- LANGUAGE CONTROLS -->
+        <div class="controls-grid">
+            <select id="sourceLang" aria-label="Source language">
+                <option value="en">English</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+            </select>
+            <button class="swap-btn" id="swapBtn" aria-label="Swap languages">⇄</button>
+            <select id="targetLang" aria-label="Target language">
+                <option value="en">English</option>
+                <option value="zh" selected>Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+            </select>
+        </div>
+
+        <!-- INPUT / OUTPUT -->
+        <div class="io-section">
+            <div class="field-group">
+                <label>
+                    Original Message
+                    <span class="badge">tap cards to build</span>
+                </label>
+                <textarea id="inputText" placeholder="Type, speak, or tap cards to build your sentence…" rows="2"></textarea>
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="translateBtn">⚡ Translate</button>
+
+                    <!-- Professional Mic Button -->
+                    <div class="mic-btn-wrapper">
+                        <button class="mic-btn" id="micBtn" aria-label="Voice input">
+                            <span class="mic-icon">🎤</span>
+                            <span class="mic-pulse-ring"></span>
+                        </button>
+                        <span class="mic-status-label" id="micStatusLabel">Ready</span>
+                    </div>
+
+                    <button class="btn btn-secondary btn-small btn-clear" id="clearBtn">✕ Clear</button>
+                    <label class="auto-toggle" title="Translate automatically as you type">
+                        <input type="checkbox" id="autoTranslateCheck" /> Auto‑translate
+                    </label>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>
+                    Translation Result
+                    <span class="badge">copy &amp; read</span>
+                </label>
+                <div class="output-box" id="outputText" aria-live="polite">Translation will appear here…</div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="speakBtn">🔊 Read Aloud</button>
+                    <button class="btn btn-secondary" id="copyBtn">📋 Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHRASE LIBRARY -->
+        <div class="library-section">
+            <div class="library-header">
+                <label>
+                    📋 Suggestion Cards <span style="font-weight:400; text-transform:none; font-size:0.7rem; color:var(--text-dim);">(tap to append)</span>
+                    <span class="count-badge" id="phraseCount">0</span>
+                </label>
+                <button class="icon-btn" id="openSettingsBtnFromLibrary" aria-label="Manage cards" style="font-size:0.75rem; padding:4px 10px;">
+                    ✏️ <span class="label">Manage</span>
+                </button>
+            </div>
+            <div class="chips-grid" id="phraseContainer" role="list"></div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================
+    SETTINGS MODAL
+    ============================================================ -->
+    <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">⚙️ Settings &amp; Cards</h3>
+                <button class="close-btn" id="closeModalBtn" aria-label="Close settings">✖</button>
+            </div>
+
+            <div class="modal-body" id="modalBody">
+
+                <!-- INSTALL SECTION -->
+                <div class="setting-section" id="settingInstallContainer">
+                    <span class="section-label">📲 App Installation</span>
+                    <div class="install-setting-row">
+                        <button class="btn btn-success" id="settingInstallBtn">Install App</button>
+                        <span class="install-hint" id="installHintText">Add to your home screen for offline use</span>
+                    </div>
+                </div>
+
+                <!-- ADD CARD -->
+                <div class="setting-section">
+                    <span class="section-label">➕ Add Custom Card</span>
+                    <div class="add-card-row">
+                        <input type="text" id="newCardInput" placeholder="Type a new phrase…" maxlength="120" />
+                        <button class="btn btn-primary" id="addCardBtn">Add</button>
+                    </div>
+                </div>
+
+                <!-- MANAGE CARDS -->
+                <div class="setting-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                    <span class="section-label">📋 Manage Saved Cards</span>
+                    <div class="card-list" id="modalCardList">
+                        <!-- dynamically rendered -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-  </main>
 
-  <!-- Settings & Cards Management Overlay -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>⚙️ Settings & Cards</h3>
-        <button class="icon-btn" id="closeModalBtn">✖</button>
-      </div>
+    <!-- ============================================================
+    JAVASCRIPT – Professional Speech Engine
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
 
-      <!-- Install Section Inside Settings -->
-      <div class="setting-section" id="settingInstallContainer">
-        <label style="display:block; margin-bottom: 8px;">App Installation</label>
-        <button class="btn btn-success" id="settingInstallBtn" style="width: 100%;">📲 Install App on Device</button>
-      </div>
-      
-      <label style="margin-bottom: 8px;">Add Custom Question Card</label>
-      <div style="margin-bottom: 12px; display:flex; gap: 8px;">
-        <input type="text" id="newCardInput" placeholder="Add a new question...">
-        <button class="btn btn-primary" id="addCardBtn" style="flex: 0 0 80px;">Add</button>
-      </div>
+            // ─── DOM REFS ─────────────────────────────────────────────
+            const $ = (sel, ctx) => (ctx || document).querySelector(sel);
+            const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
 
-      <label style="margin-bottom: 8px;">Manage Saved Cards</label>
-      <div class="modal-body" id="modalCardList">
-        <!-- Editable cards -->
-      </div>
-    </div>
-  </div>
+            const htmlEl = document.documentElement;
+            const themeToggleBtn = $('#themeToggleBtn');
+            const sourceLang = $('#sourceLang');
+            const targetLang = $('#targetLang');
+            const swapBtn = $('#swapBtn');
+            const inputText = $('#inputText');
+            const outputText = $('#outputText');
+            const translateBtn = $('#translateBtn');
+            const speakBtn = $('#speakBtn');
+            const copyBtn = $('#copyBtn');
+            const micBtn = $('#micBtn');
+            const micStatusLabel = $('#micStatusLabel');
+            const clearBtn = $('#clearBtn');
+            const autoTranslateCheck = $('#autoTranslateCheck');
+            const phraseContainer = $('#phraseContainer');
+            const phraseCount = $('#phraseCount');
 
-  <script>
-    // PWA & Service Worker Registration
-    let deferredPrompt = null;
-    const installBanner = document.getElementById('installBanner');
-    const bannerInstallBtn = document.getElementById('bannerInstallBtn');
-    const dismissBannerBtn = document.getElementById('dismissBannerBtn');
-    const settingInstallBtn = document.getElementById('settingInstallBtn');
-    const settingInstallContainer = document.getElementById('settingInstallContainer');
+            const modalOverlay = $('#modalOverlay');
+            const openSettingsBtn = $('#openSettingsBtn');
+            const openSettingsBtnFromLibrary = $('#openSettingsBtnFromLibrary');
+            const closeModalBtn = $('#closeModalBtn');
+            const modalCardList = $('#modalCardList');
+            const newCardInput = $('#newCardInput');
+            const addCardBtn = $('#addCardBtn');
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration Failed:', err));
-      });
-    }
+            const installBanner = $('#installBanner');
+            const bannerInstallBtn = $('#bannerInstallBtn');
+            const dismissBannerBtn = $('#dismissBannerBtn');
+            const settingInstallBtn = $('#settingInstallBtn');
+            const settingInstallContainer = $('#settingInstallContainer');
+            const installHintText = $('#installHintText');
 
-    // Capture install prompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      
-      // Show installation UI
-      installBanner.classList.add('active');
-      settingInstallContainer.style.display = 'block';
-    });
+            const iosGuide = $('#iosInstallGuide');
+            const dismissIosGuideBtn = $('#dismissIosGuideBtn');
 
-    // Install action trigger
-    async function triggerPwaInstall() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        installBanner.classList.remove('active');
-        settingInstallContainer.style.display = 'none';
-      }
-      deferredPrompt = null;
-    }
+            // ─── DEFAULTS ─────────────────────────────────────────────
+            const DEFAULT_PHRASES = [
+                'Do you need room cleaning',
+                'Shall I come back later',
+                'When do you want cleaning',
+                'Would you like fresh towels',
+                'Do you have laundry',
+                'Is everything okay',
+                'Can I help you with anything',
+                'What time is check-out'
+            ];
 
-    bannerInstallBtn.addEventListener('click', triggerPwaInstall);
-    settingInstallBtn.addEventListener('click', triggerPwaInstall);
+            const STORAGE_KEY = 'pwa_translator_cards';
+            const THEME_STORAGE_KEY = 'pwa_translator_theme';
+            const AUTO_TRANSLATE_KEY = 'pwa_auto_translate';
 
-    dismissBannerBtn.addEventListener('click', () => {
-      installBanner.classList.remove('active');
-    });
+            // ─── PWA / INSTALL STATE ──────────────────────────────────
+            let deferredPrompt = null;
+            let isIosPwa = false;
+            let isStandalone = false;
 
-    // Hide install prompt if already installed
-    window.addEventListener('appinstalled', () => {
-      installBanner.classList.remove('active');
-      settingInstallContainer.style.display = 'none';
-      deferredPrompt = null;
-    });
+            // ─── THEME ─────────────────────────────────────────────────
+            function loadTheme() {
+                try {
+                    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+                    if (saved === 'light' || saved === 'dark') {
+                        htmlEl.setAttribute('data-theme', saved);
+                        themeToggleBtn.innerText = saved === 'dark' ? '🌙' : '☀️';
+                        return;
+                    }
+                } catch (_) { /* ignore */ }
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = prefersDark ? 'dark' : 'light';
+                htmlEl.setAttribute('data-theme', theme);
+                themeToggleBtn.innerText = theme === 'dark' ? '🌙' : '☀️';
+            }
 
-    // Theme Switcher
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const htmlElement = document.documentElement;
-    themeToggleBtn.addEventListener('click', () => {
-      const isDark = htmlElement.getAttribute('data-theme') === 'dark';
-      htmlElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-      themeToggleBtn.innerText = isDark ? '☀️' : '🌙';
-    });
+            function toggleTheme() {
+                const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+                const next = isDark ? 'light' : 'dark';
+                htmlEl.setAttribute('data-theme', next);
+                themeToggleBtn.innerText = next === 'dark' ? '🌙' : '☀️';
+                try {
+                    localStorage.setItem(THEME_STORAGE_KEY, next);
+                } catch (_) { /* ignore */ }
+            }
 
-    // Main Translation UI Logic
-    const sourceLang = document.getElementById('sourceLang');
-    const targetLang = document.getElementById('targetLang');
-    const swapBtn = document.getElementById('swapBtn');
-    const inputText = document.getElementById('inputText');
-    const outputText = document.getElementById('outputText');
-    const translateBtn = document.getElementById('translateBtn');
-    const speakBtn = document.getElementById('speakBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const phraseContainer = document.getElementById('phraseContainer');
+            themeToggleBtn.addEventListener('click', toggleTheme);
 
-    // Settings Modal UI
-    const modalOverlay = document.getElementById('modalOverlay');
-    const openSettingsBtn = document.getElementById('openSettingsBtn');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const modalCardList = document.getElementById('modalCardList');
-    const newCardInput = document.getElementById('newCardInput');
-    const addCardBtn = document.getElementById('addCardBtn');
+            // ─── CARDS (CRUD) ─────────────────────────────────────────
+            function getCards() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length) return parsed;
+                    }
+                } catch (_) { /* ignore */ }
+                return [...DEFAULT_PHRASES];
+            }
 
-    const defaultPhrases = [
-      "Would you like your room cleaned now?",
-      "Do you need extra towels or pillows?",
-      "When should I return to clean your room?",
-      "Here is your room service order.",
-      "Do you have any laundry for cleaning?",
-      "Is everything okay with your room?"
-    ];
+            function saveCards(cards) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+                } catch (_) { /* ignore */ }
+                renderAll();
+            }
 
-    function getStoredCards() {
-      const saved = localStorage.getItem('pwa_translator_cards');
-      return saved ? JSON.parse(saved) : defaultPhrases;
-    }
+            function renderMainCards() {
+                const cards = getCards();
+                phraseContainer.innerHTML = '';
+                cards.forEach(text => {
+                    const btn = document.createElement('button');
+                    btn.className = 'chip';
+                    btn.innerHTML = `${text} <span class="append-icon">+</span>`;
+                    btn.setAttribute('role', 'listitem');
+                    btn.title = 'Tap to append to your message';
+                    btn.addEventListener('click', () => {
+                        appendToInput(text);
+                    });
+                    phraseContainer.appendChild(btn);
+                });
+                phraseCount.textContent = cards.length;
+            }
 
-    function saveCards(cards) {
-      localStorage.setItem('pwa_translator_cards', JSON.stringify(cards));
-      renderMainCards();
-      renderModalCards();
-    }
+            function renderModalCards() {
+                const cards = getCards();
+                modalCardList.innerHTML = '';
+                if (!cards.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-cards-msg';
+                    empty.textContent = 'No cards yet. Add one above!';
+                    modalCardList.appendChild(empty);
+                    return;
+                }
+                cards.forEach((text, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'card-item';
 
-    function renderMainCards() {
-      phraseContainer.innerHTML = '';
-      getStoredCards().forEach(text => {
-        const btn = document.createElement('button');
-        btn.className = 'chip';
-        btn.innerText = text;
-        btn.onclick = () => {
-          inputText.value = text;
-          translateText();
-        };
-        phraseContainer.appendChild(btn);
-      });
-    }
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'edit-card-input';
+                    input.value = text;
+                    input.dataset.index = index;
+                    input.maxLength = 120;
 
-    function renderModalCards() {
-      modalCardList.innerHTML = '';
-      getStoredCards().forEach((text, index) => {
-        const item = document.createElement('div');
-        item.className = 'card-item';
-        item.innerHTML = `
-          <input type="text" value="${text}" data-index="${index}" class="edit-card-input">
-          <div class="card-item-actions">
-            <button class="btn btn-secondary save-single-btn" data-index="${index}">💾 Save Edit</button>
-            <button class="btn btn-danger delete-single-btn" data-index="${index}">🗑️ Delete</button>
-          </div>
-        `;
-        modalCardList.appendChild(item);
-      });
+                    const actions = document.createElement('div');
+                    actions.className = 'card-actions';
 
-      document.querySelectorAll('.save-single-btn').forEach(btn => {
-        btn.onclick = (e) => {
-          const idx = e.target.dataset.index;
-          const newValue = document.querySelector(`.edit-card-input[data-index="${idx}"]`).value.trim();
-          if (newValue) {
-            const cards = getStoredCards();
-            cards[idx] = newValue;
-            saveCards(cards);
-          }
-        };
-      });
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'btn btn-save';
+                    saveBtn.textContent = '💾 Save';
+                    saveBtn.dataset.index = index;
 
-      document.querySelectorAll('.delete-single-btn').forEach(btn => {
-        btn.onclick = (e) => {
-          const idx = e.target.dataset.index;
-          const cards = getStoredCards();
-          cards.splice(idx, 1);
-          saveCards(cards);
-        };
-      });
-    }
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn btn-delete';
+                    delBtn.textContent = '🗑️';
+                    delBtn.dataset.index = index;
+                    delBtn.setAttribute('aria-label', 'Delete card');
 
-    addCardBtn.onclick = () => {
-      const val = newCardInput.value.trim();
-      if (val) {
-        const cards = getStoredCards();
-        cards.push(val);
-        saveCards(cards);
-        newCardInput.value = '';
-      }
-    };
+                    actions.appendChild(saveBtn);
+                    actions.appendChild(delBtn);
+                    item.appendChild(input);
+                    item.appendChild(actions);
+                    modalCardList.appendChild(item);
 
-    openSettingsBtn.onclick = () => {
-      renderModalCards();
-      modalOverlay.classList.add('active');
-    };
-    closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
+                    saveBtn.addEventListener('click', () => {
+                        const newVal = input.value.trim();
+                        if (!newVal) return;
+                        const updated = getCards();
+                        updated[index] = newVal;
+                        saveCards(updated);
+                    });
 
-    async function translateText() {
-      const text = inputText.value.trim();
-      if (!text) return;
+                    delBtn.addEventListener('click', () => {
+                        const updated = getCards();
+                        updated.splice(index, 1);
+                        saveCards(updated);
+                    });
 
-      if (sourceLang.value === targetLang.value) {
-        outputText.innerText = text;
-        return;
-      }
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveBtn.click();
+                        }
+                    });
+                });
+            }
 
-      outputText.innerText = "Translating...";
-      const pair = `${sourceLang.value}|${targetLang.value}`;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
+            function renderAll() {
+                renderMainCards();
+                renderModalCards();
+            }
 
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.responseData && data.responseData.translatedText) {
-          outputText.innerText = data.responseData.translatedText;
-        }
-      } catch (err) {
-        outputText.innerText = "Offline Mode: Full web translation requires network connection. Pre-saved text and speech still work!";
-      }
-    }
+            // ─── APPEND TO INPUT ──────────────────────────────────────
+            function appendToInput(text) {
+                const current = inputText.value;
+                const trimmedCurrent = current.trim();
+                const trimmedText = text.trim();
+                if (!trimmedText) return;
+                if (trimmedCurrent === '') {
+                    inputText.value = trimmedText;
+                } else {
+                    const endsWithSpace = current.endsWith(' ') || current.endsWith('\n');
+                    inputText.value = current + (endsWithSpace ? '' : ' ') + trimmedText;
+                }
+                if (autoTranslateCheck.checked) {
+                    debouncedTranslate();
+                }
+                inputText.focus();
+            }
 
-    translateBtn.onclick = translateText;
+            // ─── CLEAR INPUT ──────────────────────────────────────────
+            clearBtn.addEventListener('click', () => {
+                inputText.value = '';
+                outputText.textContent = 'Translation will appear here…';
+                if (autoTranslateCheck.checked) {
+                    debouncedTranslate.cancel && debouncedTranslate.cancel();
+                }
+                inputText.focus();
+            });
 
-    speakBtn.onclick = () => {
-      const text = outputText.innerText;
-      if (!text || text.startsWith("Translation will")) return;
-      const locales = { 'en': 'en-US', 'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR' };
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = locales[targetLang.value];
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
-    };
+            // ─── ADD CARD ─────────────────────────────────────────────
+            addCardBtn.addEventListener('click', () => {
+                const val = newCardInput.value.trim();
+                if (!val) return;
+                const cards = getCards();
+                cards.push(val);
+                saveCards(cards);
+                newCardInput.value = '';
+                newCardInput.focus();
+            });
 
-    swapBtn.onclick = () => {
-      const temp = sourceLang.value;
-      sourceLang.value = targetLang.value;
-      targetLang.value = temp;
-    };
+            newCardInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCardBtn.click();
+                }
+            });
 
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(outputText.innerText);
-    };
+            // ─── TRANSLATE ─────────────────────────────────────────────
+            let translateTimeout = null;
 
-    renderMainCards();
-  </script>
+            async function translateText() {
+                const text = inputText.value.trim();
+                if (!text) {
+                    outputText.textContent = 'Please enter some text to translate.';
+                    return;
+                }
+
+                const src = sourceLang.value;
+                const tgt = targetLang.value;
+
+                if (src === tgt) {
+                    outputText.textContent = text;
+                    return;
+                }
+
+                outputText.textContent = 'Translating…';
+                translateBtn.disabled = true;
+
+                const pair = `${src}|${tgt}`;
+                const url =
+                    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
+
+                try {
+                    const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+                    const data = await resp.json();
+                    if (data.responseData && data.responseData.translatedText) {
+                        outputText.textContent = data.responseData.translatedText;
+                    } else {
+                        outputText.textContent = '⚠️ Translation unavailable. Please try again.';
+                    }
+                } catch (err) {
+                    outputText.textContent =
+                        '🌐 Offline: Full translation needs network. Saved phrases and speech still work!';
+                } finally {
+                    translateBtn.disabled = false;
+                }
+            }
+
+            function debouncedTranslate() {
+                if (translateTimeout) clearTimeout(translateTimeout);
+                translateTimeout = setTimeout(() => {
+                    translateText();
+                    translateTimeout = null;
+                }, 550);
+            }
+
+            translateBtn.addEventListener('click', translateText);
+
+            // Auto-translate toggle
+            autoTranslateCheck.addEventListener('change', () => {
+                try {
+                    localStorage.setItem(AUTO_TRANSLATE_KEY, autoTranslateCheck.checked ? 'true' : 'false');
+                } catch (_) { /* ignore */ }
+                if (autoTranslateCheck.checked && inputText.value.trim()) {
+                    debouncedTranslate();
+                }
+            });
+
+            try {
+                const autoPref = localStorage.getItem(AUTO_TRANSLATE_KEY);
+                if (autoPref === 'true') {
+                    autoTranslateCheck.checked = true;
+                }
+            } catch (_) { /* ignore */ }
+
+            inputText.addEventListener('input', () => {
+                if (autoTranslateCheck.checked) {
+                    debouncedTranslate();
+                }
+            });
+
+            inputText.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    translateText();
+                }
+            });
+
+            // ─── SWAP LANGUAGES ──────────────────────────────────────
+            swapBtn.addEventListener('click', () => {
+                const temp = sourceLang.value;
+                sourceLang.value = targetLang.value;
+                targetLang.value = temp;
+                if (autoTranslateCheck.checked && inputText.value.trim()) {
+                    debouncedTranslate();
+                }
+            });
+
+            // ─── TEXT-TO-SPEECH (Professional) ──────────────────────
+            let currentSpeechUtterance = null;
+            let speechQueue = [];
+
+            function speakText(text, langCode) {
+                return new Promise((resolve) => {
+                    if (!text || text.startsWith('Translation will') || text.includes('Offline') || text
+                        .includes('⚠️')) {
+                        resolve(false);
+                        return;
+                    }
+
+                    window.speechSynthesis.cancel();
+
+                    const langMap = { en: 'en-US', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR' };
+                    const lang = langMap[langCode] || 'en-US';
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.92;
+                    utterance.pitch = 1.0;
+
+                    // Try to find a native voice
+                    const voices = window.speechSynthesis.getVoices();
+                    const nativeVoice = voices.find(v => v.lang.startsWith(lang.split('-')[0]) && v.localService);
+                    if (nativeVoice) {
+                        utterance.voice = nativeVoice;
+                    }
+
+                    utterance.onend = () => { resolve(true); };
+                    utterance.onerror = () => { resolve(false); };
+
+                    currentSpeechUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                });
+            }
+
+            speakBtn.addEventListener('click', async () => {
+                const text = outputText.textContent;
+                if (!text || text.startsWith('Translation will') || text.includes('Offline') || text.includes(
+                    '⚠️')) {
+                    return;
+                }
+                // Update button state
+                const origText = speakBtn.textContent;
+                speakBtn.textContent = '🔊 Speaking…';
+                speakBtn.disabled = true;
+
+                await speakText(text, targetLang.value);
+
+                speakBtn.textContent = origText;
+                speakBtn.disabled = false;
+            });
+
+            // Preload voices
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+
+            // ─── COPY ──────────────────────────────────────────────────
+            copyBtn.addEventListener('click', async () => {
+                const text = outputText.textContent;
+                if (!text || text.startsWith('Translation will')) return;
+                try {
+                    await navigator.clipboard.writeText(text);
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+                } catch (_) {
+                    const range = document.createRange();
+                    range.selectNode(outputText);
+                    window.getSelection().removeAllRanges();
+                    window.getSelection().addRange(range);
+                    document.execCommand('copy');
+                    window.getSelection().removeAllRanges();
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+                }
+            });
+
+            // ─── PROFESSIONAL SPEECH RECOGNITION ─────────────────────
+            let recognition = null;
+            let isListening = false;
+            let shouldRestart = false;
+            let finalTranscript = '';
+            let interimTranscript = '';
+            let restartTimeout = null;
+            let silenceTimer = null;
+            const SILENCE_TIMEOUT = 2000; // ms of silence before finalizing
+
+            const langMap = { en: 'en-US', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR' };
+
+            function getRecognitionLang() {
+                return langMap[sourceLang.value] || 'en-US';
+            }
+
+            function updateMicStatus(status, isError = false, isSuccess = false) {
+                micStatusLabel.textContent = status;
+                micStatusLabel.className = 'mic-status-label';
+                if (isError) micStatusLabel.classList.add('error');
+                else if (isSuccess) micStatusLabel.classList.add('success');
+                else if (isListening) micStatusLabel.classList.add('active');
+            }
+
+            function setMicState(state) {
+                micBtn.classList.remove('listening', 'error-state');
+                if (state === 'listening') {
+                    micBtn.classList.add('listening');
+                    micBtn.querySelector('.mic-icon').textContent = '🎤';
+                    updateMicStatus('Listening…');
+                } else if (state === 'processing') {
+                    micBtn.classList.remove('listening');
+                    micBtn.querySelector('.mic-icon').textContent = '⏳';
+                    updateMicStatus('Processing…');
+                } else if (state === 'error') {
+                    micBtn.classList.add('error-state');
+                    micBtn.querySelector('.mic-icon').textContent = '⚠️';
+                    updateMicStatus('Error', true);
+                    setTimeout(() => {
+                        micBtn.classList.remove('error-state');
+                        if (!isListening) {
+                            micBtn.querySelector('.mic-icon').textContent = '🎤';
+                            updateMicStatus('Ready');
+                        }
+                    }, 1500);
+                } else {
+                    // idle
+                    micBtn.classList.remove('listening');
+                    micBtn.querySelector('.mic-icon').textContent = '🎤';
+                    updateMicStatus('Ready');
+                }
+            }
+
+            function initRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    micBtn.style.opacity = '0.4';
+                    micBtn.title = 'Speech recognition not supported';
+                    updateMicStatus('Unsupported', true);
+                    return null;
+                }
+
+                const rec = new SpeechRecognition();
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.maxAlternatives = 1;
+                rec.lang = getRecognitionLang();
+
+                rec.onstart = function() {
+                    isListening = true;
+                    finalTranscript = '';
+                    interimTranscript = '';
+                    setMicState('listening');
+                };
+
+                rec.onend = function() {
+                    isListening = false;
+                    // If we have a final transcript, process it
+                    if (finalTranscript.trim()) {
+                        inputText.value = finalTranscript.trim();
+                        if (autoTranslateCheck.checked) {
+                            debouncedTranslate();
+                        } else {
+                            translateText();
+                        }
+                        finalTranscript = '';
+                        setMicState('idle');
+                        updateMicStatus('Done ✓', false, true);
+                        setTimeout(() => {
+                            if (!isListening) {
+                                updateMicStatus('Ready');
+                            }
+                        }, 1200);
+                    } else if (interimTranscript.trim()) {
+                        // Use interim if no final
+                        inputText.value = interimTranscript.trim();
+                        if (autoTranslateCheck.checked) {
+                            debouncedTranslate();
+                        } else {
+                            translateText();
+                        }
+                        interimTranscript = '';
+                        setMicState('idle');
+                        updateMicStatus('Done ✓', false, true);
+                        setTimeout(() => {
+                            if (!isListening) {
+                                updateMicStatus('Ready');
+                            }
+                        }, 1200);
+                    } else {
+                        setMicState('idle');
+                        if (!finalTranscript && !interimTranscript) {
+                            updateMicStatus('Ready');
+                        }
+                    }
+
+                    // Auto-restart if we should
+                    if (shouldRestart) {
+                        shouldRestart = false;
+                        if (restartTimeout) clearTimeout(restartTimeout);
+                        restartTimeout = setTimeout(() => {
+                            if (!isListening && !document.hidden) {
+                                startListening();
+                            }
+                            restartTimeout = null;
+                        }, 300);
+                    }
+                };
+
+                rec.onerror = function(event) {
+                    console.warn('Speech recognition error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        setMicState('error');
+                        updateMicStatus('Permission denied', true);
+                        isListening = false;
+                        shouldRestart = false;
+                        return;
+                    }
+                    if (event.error === 'no-speech') {
+                        // Silent error, just restart
+                        if (isListening) {
+                            // The browser will handle this
+                        }
+                        return;
+                    }
+                    if (event.error === 'audio-capture') {
+                        setMicState('error');
+                        updateMicStatus('No microphone', true);
+                        isListening = false;
+                        shouldRestart = false;
+                        return;
+                    }
+                    // For other errors, try to recover
+                    if (isListening) {
+                        setMicState('error');
+                        setTimeout(() => {
+                            if (!isListening && !document.hidden) {
+                                startListening();
+                            }
+                        }, 500);
+                    }
+                };
+
+                rec.onresult = function(event) {
+                    let interim = '';
+                    let final = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const result = event.results[i];
+                        const transcript = result[0].transcript;
+                        if (result.isFinal) {
+                            final += transcript;
+                        } else {
+                            interim += transcript;
+                        }
+                    }
+
+                    if (final) {
+                        finalTranscript = final;
+                        // Show final text immediately
+                        inputText.value = final.trim();
+                        if (autoTranslateCheck.checked) {
+                            debouncedTranslate();
+                        }
+                        // Reset silence timer since we have new final text
+                        resetSilenceTimer();
+                    }
+
+                    if (interim) {
+                        interimTranscript = interim;
+                        // Show interim with a subtle indicator
+                        const currentFinal = finalTranscript.trim();
+                        const displayText = currentFinal ? currentFinal + ' ' + interim : interim;
+                        inputText.value = displayText.trim();
+                        // Don't translate interim, wait for final
+                    }
+
+                    // Reset silence timer on any speech
+                    resetSilenceTimer();
+                };
+
+                return rec;
+            }
+
+            function resetSilenceTimer() {
+                if (silenceTimer) clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    // If we have a final transcript and silence detected, we can let it be
+                    if (finalTranscript.trim() && isListening) {
+                        // Stop recognition to process final result
+                        // This will trigger onend with the final result
+                        try {
+                            if (recognition) {
+                                recognition.stop();
+                                shouldRestart = true;
+                            }
+                        } catch (_) { /* ignore */ }
+                    }
+                    silenceTimer = null;
+                }, SILENCE_TIMEOUT);
+            }
+
+            function startListening() {
+                if (isListening) return;
+
+                if (!recognition) {
+                    recognition = initRecognition();
+                    if (!recognition) return;
+                }
+
+                // Update language if changed
+                const currentLang = getRecognitionLang();
+                if (recognition.lang !== currentLang) {
+                    recognition.lang = currentLang;
+                }
+
+                // Clear any previous state
+                finalTranscript = '';
+                interimTranscript = '';
+                shouldRestart = true;
+
+                try {
+                    recognition.start();
+                    isListening = true;
+                    setMicState('listening');
+                    updateMicStatus('Listening…');
+                } catch (e) {
+                    // If already started, stop and restart
+                    if (e.name === 'InvalidStateError') {
+                        try {
+                            recognition.stop();
+                            setTimeout(() => {
+                                startListening();
+                            }, 300);
+                        } catch (_) { /* ignore */ }
+                    } else {
+                        setMicState('error');
+                        updateMicStatus('Error starting', true);
+                        isListening = false;
+                    }
+                }
+            }
+
+            function stopListening() {
+                shouldRestart = false;
+                if (silenceTimer) {
+                    clearTimeout(silenceTimer);
+                    silenceTimer = null;
+                }
+                if (recognition && isListening) {
+                    try {
+                        recognition.stop();
+                    } catch (_) { /* ignore */ }
+                }
+                isListening = false;
+                setMicState('idle');
+                updateMicStatus('Ready');
+            }
+
+            function toggleListening() {
+                if (isListening) {
+                    stopListening();
+                    // If we have text, translate
+                    if (inputText.value.trim()) {
+                        if (autoTranslateCheck.checked) {
+                            debouncedTranslate();
+                        } else {
+                            translateText();
+                        }
+                    }
+                } else {
+                    startListening();
+                }
+            }
+
+            // ─── MIC BUTTON EVENT ─────────────────────────────────────
+            micBtn.addEventListener('click', toggleListening);
+
+            // Handle page visibility changes to avoid issues
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && isListening) {
+                    // Don't stop, but handle it gracefully
+                }
+                if (!document.hidden && !isListening && !micBtn.classList.contains('error-state')) {
+                    // Don't auto-start
+                }
+            });
+
+            // ─── MODAL ─────────────────────────────────────────────────
+            function openModal() {
+                renderModalCards();
+                modalOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            openSettingsBtn.addEventListener('click', openModal);
+            openSettingsBtnFromLibrary.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+
+            // ─── PWA: SERVICE WORKER ──────────────────────────────────
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js')
+                        .then(() => { /* SW registered */ })
+                        .catch(() => { /* SW registration failed, but app still works */ });
+                });
+            }
+
+            // ─── PWA: INSTALL PROMPT (Android Chrome) ────────────────
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.classList.add('active');
+                settingInstallContainer.style.display = 'block';
+                installHintText.textContent = 'Install for offline use & home screen access';
+            });
+
+            async function triggerInstall() {
+                if (!deferredPrompt) {
+                    if (isIosPwa || /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                        iosGuide.classList.add('active');
+                    } else {
+                        alert(
+                            'Installation is not available right now. Use your browser\'s "Add to Home Screen" feature.');
+                    }
+                    return;
+                }
+                try {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBanner.classList.remove('active');
+                        settingInstallContainer.style.display = 'none';
+                        installHintText.textContent = '✅ App installed!';
+                    } else {
+                        installHintText.textContent = 'You can install later from the browser menu.';
+                    }
+                } catch (_) { /* ignore */ }
+                deferredPrompt = null;
+            }
+
+            bannerInstallBtn.addEventListener('click', triggerInstall);
+            settingInstallBtn.addEventListener('click', triggerInstall);
+
+            dismissBannerBtn.addEventListener('click', () => {
+                installBanner.classList.remove('active');
+            });
+
+            window.addEventListener('appinstalled', () => {
+                installBanner.classList.remove('active');
+                settingInstallContainer.style.display = 'none';
+                installHintText.textContent = '✅ App installed!';
+                deferredPrompt = null;
+            });
+
+            // ─── iOS DETECTION & GUIDE ──────────────────────────────
+            if (window.navigator.standalone === true) {
+                isStandalone = true;
+                isIosPwa = true;
+            }
+
+            const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            if (isIos && !window.navigator.standalone) {
+                setTimeout(() => {
+                    if (!window.navigator.standalone && !sessionStorage.getItem('iosGuideDismissed')) {
+                        iosGuide.classList.add('active');
+                    }
+                }, 2500);
+            }
+
+            dismissIosGuideBtn.addEventListener('click', () => {
+                iosGuide.classList.remove('active');
+                try {
+                    sessionStorage.setItem('iosGuideDismissed', 'true');
+                } catch (_) { /* ignore */ }
+            });
+
+            window.addEventListener('pageshow', () => {
+                if (window.navigator.standalone) {
+                    iosGuide.classList.remove('active');
+                }
+            });
+
+            if (isIos && !window.navigator.standalone) {
+                settingInstallBtn.textContent = '📲 Add to Home Screen';
+                settingInstallBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!window.navigator.standalone) {
+                        iosGuide.classList.add('active');
+                    }
+                });
+                installHintText.textContent = 'Tap Share → "Add to Home Screen"';
+            }
+
+            // ─── INIT ──────────────────────────────────────────────────
+            loadTheme();
+            renderAll();
+
+            // Initialize speech recognition instance (but don't start)
+            recognition = initRecognition();
+
+            // If there's text in the input on load, translate if auto is on
+            if (inputText.value.trim() && autoTranslateCheck.checked) {
+                setTimeout(debouncedTranslate, 500);
+            }
+
+            // Handle source language change for speech recognition
+            sourceLang.addEventListener('change', () => {
+                if (recognition && isListening) {
+                    // Restart with new language
+                    stopListening();
+                    recognition.lang = getRecognitionLang();
+                    // Don't auto-start, user will click mic again
+                }
+                if (autoTranslateCheck.checked && inputText.value.trim()) {
+                    debouncedTranslate();
+                }
+            });
+
+            targetLang.addEventListener('change', () => {
+                if (autoTranslateCheck.checked && inputText.value.trim()) {
+                    debouncedTranslate();
+                }
+            });
+
+            console.log('🛎️ Service Translator PWA ready (professional speech engine)');
+            console.log(`📱 iOS: ${isIos}, Standalone: ${window.navigator.standalone || false}`);
+
+        })();
+    </script>
+
 </body>
 </html>
